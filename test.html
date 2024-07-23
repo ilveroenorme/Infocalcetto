@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INFOCALCETTO</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #infoTitle {
+            font-weight: bold;
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        #teamDisplay h3 {
+            font-weight: bold;
+        }
+        .player-input {
+            margin-bottom: 10px;
+        }
+        .team-container {
+            margin-bottom: 20px;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .grid-item {
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        select:focus {
+            background-color: #f0f0f0;
+        }
+        button {
+            margin: 10px;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const numPlayersSelect = document.getElementById("numPlayers");
+            numPlayersSelect.addEventListener('focus', () => {
+                if (numPlayersSelect.options.length === 0) {
+                    populateNumPlayersSelect();
+                }
+            });
+        });
+
+        function populateNumPlayersSelect() {
+            const numPlayersSelect = document.getElementById("numPlayers");
+            numPlayersSelect.innerHTML = `
+                <option value="" disabled selected>Seleziona numero di giocatori</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+            `;
+        }
+
+        function generatePlayerSelection() {
+            const numPlayers = parseInt(document.getElementById("numPlayers").value, 10);
+            const playerSelectionDiv = document.getElementById("playerSelection");
+
+            playerSelectionDiv.innerHTML = "";
+
+            if (numPlayers < 4) {
+                alert("Il numero minimo di giocatori è 4.");
+                return;
+            }
+
+            const gridContainer = document.createElement("div");
+            gridContainer.classList.add("grid-container");
+
+            for (let i = 1; i <= numPlayers; i++) {
+                const playerDiv = document.createElement("div");
+                playerDiv.classList.add("grid-item");
+                playerDiv.innerHTML = `
+                    <h2>Giocatore ${i}</h2>
+                    <label for="nome${i}">Nome:</label>
+                    <input type="text" id="nome${i}" name="nome${i}" required>
+                    <br><br>
+                    
+                    <label for="ruolo${i}">Ruolo:</label>
+                    <select id="ruolo${i}" name="ruolo${i}" onchange="togglePunteggi(${i})">
+                        <option value="attacco">Attacco</option>
+                        <option value="difesa">Difesa</option>
+                        <option value="entrambi">Entrambi</option>
+                    </select>
+                    <br><br>
+                    
+                    <div id="punteggioContainer${i}">
+                        <label for="punteggio${i}">Punteggio:</label>
+                        <select id="punteggio${i}" name="punteggio${i}">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                        </select>
+                    </div>
+                    <div id="punteggioEntrambiContainer${i}" style="display: none;">
+                        <label for="punteggioAttacco${i}">Punteggio Attacco:</label>
+                        <select id="punteggioAttacco${i}" name="punteggioAttacco${i}">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                        </select>
+                        <br><br>
+                        <label for="punteggioDifesa${i}">Punteggio Difesa:</label>
+                        <select id="punteggioDifesa${i}" name="punteggioDifesa${i}">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                        </select>
+                    </div>
+                    <br><br>
+                `;
+                gridContainer.appendChild(playerDiv);
+            }
+
+            playerSelectionDiv.appendChild(gridContainer);
+        }
+
+        function togglePunteggi(playerIndex) {
+            const ruolo = document.getElementById(`ruolo${playerIndex}`).value;
+            const punteggioContainer = document.getElementById(`punteggioContainer${playerIndex}`);
+            const punteggioEntrambiContainer = document.getElementById(`punteggioEntrambiContainer${playerIndex}`);
+
+            if (ruolo === "entrambi") {
+                punteggioContainer.style.display = "none";
+                punteggioEntrambiContainer.style.display = "block";
+            } else {
+                punteggioContainer.style.display = "block";
+                punteggioEntrambiContainer.style.display = "none";
+            }
+        }
+
+        function createTeams(event) {
+            event.preventDefault();
+            
+            const numPlayers = parseInt(document.getElementById("numPlayers").value, 10);
+            const players = [];
+
+            for (let i = 1; i <= numPlayers; i++) {
+                const ruolo = document.getElementById(`ruolo${i}`).value;
+                let score;
+                if (ruolo === "entrambi") {
+                    const scoreAttacco = parseInt(document.getElementById(`punteggioAttacco${i}`).value, 10);
+                    const scoreDifesa = parseInt(document.getElementById(`punteggioDifesa${i}`).value, 10);
+                    score = { attacco: scoreAttacco, difesa: scoreDifesa };
+                } else {
+                    score = parseInt(document.getElementById(`punteggio${i}`).value, 10);
+                }
+                const player = {
+                    name: document.getElementById(`nome${i}`).value,
+                    role: ruolo,
+                    score: score
+                };
+                players.push(player);
+            }
+
+            // Ordina i giocatori per il punteggio totale se hanno il ruolo "entrambi", altrimenti solo per il punteggio singolo
+            players.sort((a, b) => {
+                if (typeof a.score === "number" && typeof b.score === "number") {
+                    return b.score - a.score;
+                } else if (typeof a.score === "object" && typeof b.score === "object") {
+                    return (b.score.attacco + b.score.difesa) - (a.score.attacco + a.score.difesa);
+                }
+                return 0;
+            });
+
+            // Creare le squadre
+            const teams = createBalancedTeams(players);
+
+            displayTeams(teams);
+        }
+
+        function createBalancedTeams(players) {
+            const teams = [];
+            const usedPlayers = new Set();
+
+            while (players.length >= 4) {
+                const team = [];
+
+                // Seleziona un difensore
+                const defender = players.find(player => player.role === 'difesa' && !usedPlayers.has(player)) ||
+                                 players.find(player => player.role === 'entrambi' && !usedPlayers.has(player));
+                if (defender) {
+                    team.push(defender);
+                    usedPlayers.add(defender);
+                }
+
+                // Seleziona un attaccante
+                const attacker = players.find(player => player.role === 'attacco' && !usedPlayers.has(player)) ||
+                                 players.find(player => player.role === 'entrambi' && !usedPlayers.has(player));
+                if (attacker) {
+                    team.push(attacker);
+                    usedPlayers.add(attacker);
+                }
+
+                if (team.length === 2) {
+                    teams.push(team);
+                }
+            }
+
+            return teams;
+        }
+
+        function displayTeams(teams) {
+            const teamDisplayDiv = document.getElementById("teamDisplay");
+            teamDisplayDiv.innerHTML = "";
+
+            // Dividere i team in coppie di squadre
+            const numTeams = teams.length;
+            for (let i = 0; i < numTeams; i += 2) {
+                const teamDiv = document.createElement("div");
+                teamDiv.classList.add("team-container");
+                teamDiv.innerHTML = `<h3>TEAM${Math.floor(i / 2) + 1}</h3>`;
+
+                if (teams[i]) {
+                    const defensePlayer = teams[i].find(player => player.role === 'difesa') || 
+                                          teams[i].find(player => player.role === 'entrambi');
+                    const attackPlayer = teams[i].find(player => player.role === 'attacco') || 
+                                         teams[i].find(player => player.role === 'entrambi');
+
+                    if (defensePlayer) {
+                        const playerInfo = document.createElement("p");
+                        playerInfo.textContent = `Difesa: ${defensePlayer.name}`;
+                        teamDiv.appendChild(playerInfo);
+                    }
+
+                    if (attackPlayer) {
+                        const playerInfo = document.createElement("p");
+                        playerInfo.textContent = `Attacco: ${attackPlayer.name}`;
+                        teamDiv.appendChild(playerInfo);
+                    }
+                }
+
+                if (teams[i + 1]) {
+                    const defensePlayer = teams[i + 1].find(player => player.role === 'difesa') || 
+                                          teams[i + 1].find(player => player.role === 'entrambi');
+                    const attackPlayer = teams[i + 1].find(player => player.role === 'attacco') || 
+                                         teams[i + 1].find(player => player.role === 'entrambi');
+
+                    if (defensePlayer) {
+                        const playerInfo = document.createElement("p");
+                        playerInfo.textContent = `Difesa: ${defensePlayer.name}`;
+                        teamDiv.appendChild(playerInfo);
+                    }
+
+                    if (attackPlayer) {
+                        const playerInfo = document.createElement("p");
+                        playerInfo.textContent = `Attacco: ${attackPlayer.name}`;
+                        teamDiv.appendChild(playerInfo);
+                    }
+                }
+
+                teamDisplayDiv.appendChild(teamDiv);
+            }
+
+            // Riporta il display delle squadre all'inizio della pagina
+            window.scrollTo(0, 0);
+
+            // Azzera il form dei giocatori
+            document.getElementById("playerForm").reset();
+            document.getElementById("playerSelection").innerHTML = "";
+        }
+
+        function resetForm() {
+            document.getElementById("playerForm").reset();
+            document.getElementById("playerSelection").innerHTML = "";
+            document.getElementById("teamDisplay").innerHTML = "";
+            window.scrollTo(0, 0);
+        }
+    </script>
+</head>
+<body>
+    <div id="infoTitle">INFOCALCETTO</div>
+    
+    <label for="numPlayers">Numero di Giocatori:</label>
+    <select id="numPlayers" name="numPlayers" onchange="generatePlayerSelection()">
+        <!-- Le opzioni verranno aggiunte dinamicamente quando la select è cliccata -->
+    </select>
+    <br><br>
+
+    <form id="playerForm" onsubmit="createTeams(event)">
+        <div id="playerSelection"></div>
+        
+        <!-- Pulsante di Invio -->
+        <button type="submit">Crea Squadra</button>
+    </form>
+
+    <div id="teamDisplay"></div>
+
+    <button onclick="resetForm()">Genera Altra Squadra</button>
+</body>
+</html>
